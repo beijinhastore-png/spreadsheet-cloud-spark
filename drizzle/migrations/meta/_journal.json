@@ -1,5 +1,48 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790888923702,
+      "tag": "0000_fase14_tabelas",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790964627778,
+      "tag": "0001_fase15_planilha",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791237230417,
+      "tag": "0002_fase4_modelo_v2_aditivo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791312958807,
+      "tag": "0003_fase19_papeis_auditoria",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791314467417,
+      "tag": "0004_fase18_visoes_salvas",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791316605212,
+      "tag": "0005_apply_existing",
+      "breakpoints": true
+    }
+  ]
 }
