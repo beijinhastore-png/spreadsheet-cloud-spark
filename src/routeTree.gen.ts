@@ -10,33 +10,280 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedControladoriaRouteImport } from './routes/_authenticated/controladoria'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDesignSystemRouteImport } from './routes/_authenticated/design-system'
+import { Route as AuthenticatedDimensoesRouteImport } from './routes/_authenticated/dimensoes'
+import { Route as AuthenticatedFaturamentoRouteImport } from './routes/_authenticated/faturamento'
+import { Route as AuthenticatedFluxoDeCaixaRouteImport } from './routes/_authenticated/fluxo-de-caixa'
+import { Route as AuthenticatedImportacaoRouteImport } from './routes/_authenticated/importacao'
+import { Route as AuthenticatedJornadaRouteImport } from './routes/_authenticated/jornada'
+import { Route as AuthenticatedNegociosRouteImport } from './routes/_authenticated/negocios'
+import { Route as AuthenticatedPipeXFaturadoRouteImport } from './routes/_authenticated/pipe-x-faturado'
+import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
+import { Route as AuthenticatedRecebiveisRouteImport } from './routes/_authenticated/recebiveis'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedSobreRouteImport } from './routes/_authenticated/sobre'
+import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedControladoriaRoute =
+  AuthenticatedControladoriaRouteImport.update({
+    id: '/controladoria',
+    path: '/controladoria',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDesignSystemRoute =
+  AuthenticatedDesignSystemRouteImport.update({
+    id: '/design-system',
+    path: '/design-system',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDimensoesRoute = AuthenticatedDimensoesRouteImport.update({
+  id: '/dimensoes',
+  path: '/dimensoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFaturamentoRoute =
+  AuthenticatedFaturamentoRouteImport.update({
+    id: '/faturamento',
+    path: '/faturamento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFluxoDeCaixaRoute =
+  AuthenticatedFluxoDeCaixaRouteImport.update({
+    id: '/fluxo-de-caixa',
+    path: '/fluxo-de-caixa',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedImportacaoRoute = AuthenticatedImportacaoRouteImport.update({
+  id: '/importacao',
+  path: '/importacao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJornadaRoute = AuthenticatedJornadaRouteImport.update({
+  id: '/jornada',
+  path: '/jornada',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNegociosRoute = AuthenticatedNegociosRouteImport.update({
+  id: '/negocios',
+  path: '/negocios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPipeXFaturadoRoute =
+  AuthenticatedPipeXFaturadoRouteImport.update({
+    id: '/pipe-x-faturado',
+    path: '/pipe-x-faturado',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
+  id: '/qualidade',
+  path: '/qualidade',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecebiveisRoute = AuthenticatedRecebiveisRouteImport.update({
+  id: '/recebiveis',
+  path: '/recebiveis',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSobreRoute = AuthenticatedSobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/controladoria': typeof AuthenticatedControladoriaRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/design-system': typeof AuthenticatedDesignSystemRoute
+  '/dimensoes': typeof AuthenticatedDimensoesRoute
+  '/faturamento': typeof AuthenticatedFaturamentoRoute
+  '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
+  '/importacao': typeof AuthenticatedImportacaoRoute
+  '/jornada': typeof AuthenticatedJornadaRoute
+  '/negocios': typeof AuthenticatedNegociosRoute
+  '/pipe-x-faturado': typeof AuthenticatedPipeXFaturadoRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/recebiveis': typeof AuthenticatedRecebiveisRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/sobre': typeof AuthenticatedSobreRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/controladoria': typeof AuthenticatedControladoriaRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/design-system': typeof AuthenticatedDesignSystemRoute
+  '/dimensoes': typeof AuthenticatedDimensoesRoute
+  '/faturamento': typeof AuthenticatedFaturamentoRoute
+  '/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
+  '/importacao': typeof AuthenticatedImportacaoRoute
+  '/jornada': typeof AuthenticatedJornadaRoute
+  '/negocios': typeof AuthenticatedNegociosRoute
+  '/pipe-x-faturado': typeof AuthenticatedPipeXFaturadoRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/recebiveis': typeof AuthenticatedRecebiveisRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/sobre': typeof AuthenticatedSobreRoute
+  '/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/controladoria': typeof AuthenticatedControladoriaRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/design-system': typeof AuthenticatedDesignSystemRoute
+  '/_authenticated/dimensoes': typeof AuthenticatedDimensoesRoute
+  '/_authenticated/faturamento': typeof AuthenticatedFaturamentoRoute
+  '/_authenticated/fluxo-de-caixa': typeof AuthenticatedFluxoDeCaixaRoute
+  '/_authenticated/importacao': typeof AuthenticatedImportacaoRoute
+  '/_authenticated/jornada': typeof AuthenticatedJornadaRoute
+  '/_authenticated/negocios': typeof AuthenticatedNegociosRoute
+  '/_authenticated/pipe-x-faturado': typeof AuthenticatedPipeXFaturadoRoute
+  '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
+  '/_authenticated/recebiveis': typeof AuthenticatedRecebiveisRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/sobre': typeof AuthenticatedSobreRoute
+  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/auditoria'
+    | '/clientes'
+    | '/controladoria'
+    | '/dashboard'
+    | '/design-system'
+    | '/dimensoes'
+    | '/faturamento'
+    | '/fluxo-de-caixa'
+    | '/importacao'
+    | '/jornada'
+    | '/negocios'
+    | '/pipe-x-faturado'
+    | '/qualidade'
+    | '/recebiveis'
+    | '/relatorios'
+    | '/sobre'
+    | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/auditoria'
+    | '/clientes'
+    | '/controladoria'
+    | '/dashboard'
+    | '/design-system'
+    | '/dimensoes'
+    | '/faturamento'
+    | '/fluxo-de-caixa'
+    | '/importacao'
+    | '/jornada'
+    | '/negocios'
+    | '/pipe-x-faturado'
+    | '/qualidade'
+    | '/recebiveis'
+    | '/relatorios'
+    | '/sobre'
+    | '/usuarios'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/auditoria'
+    | '/_authenticated/clientes'
+    | '/_authenticated/controladoria'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/design-system'
+    | '/_authenticated/dimensoes'
+    | '/_authenticated/faturamento'
+    | '/_authenticated/fluxo-de-caixa'
+    | '/_authenticated/importacao'
+    | '/_authenticated/jornada'
+    | '/_authenticated/negocios'
+    | '/_authenticated/pipe-x-faturado'
+    | '/_authenticated/qualidade'
+    | '/_authenticated/recebiveis'
+    | '/_authenticated/relatorios'
+    | '/_authenticated/sobre'
+    | '/_authenticated/usuarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +295,197 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/controladoria': {
+      id: '/_authenticated/controladoria'
+      path: '/controladoria'
+      fullPath: '/controladoria'
+      preLoaderRoute: typeof AuthenticatedControladoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/design-system': {
+      id: '/_authenticated/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof AuthenticatedDesignSystemRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dimensoes': {
+      id: '/_authenticated/dimensoes'
+      path: '/dimensoes'
+      fullPath: '/dimensoes'
+      preLoaderRoute: typeof AuthenticatedDimensoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/faturamento': {
+      id: '/_authenticated/faturamento'
+      path: '/faturamento'
+      fullPath: '/faturamento'
+      preLoaderRoute: typeof AuthenticatedFaturamentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fluxo-de-caixa': {
+      id: '/_authenticated/fluxo-de-caixa'
+      path: '/fluxo-de-caixa'
+      fullPath: '/fluxo-de-caixa'
+      preLoaderRoute: typeof AuthenticatedFluxoDeCaixaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/importacao': {
+      id: '/_authenticated/importacao'
+      path: '/importacao'
+      fullPath: '/importacao'
+      preLoaderRoute: typeof AuthenticatedImportacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jornada': {
+      id: '/_authenticated/jornada'
+      path: '/jornada'
+      fullPath: '/jornada'
+      preLoaderRoute: typeof AuthenticatedJornadaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/negocios': {
+      id: '/_authenticated/negocios'
+      path: '/negocios'
+      fullPath: '/negocios'
+      preLoaderRoute: typeof AuthenticatedNegociosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pipe-x-faturado': {
+      id: '/_authenticated/pipe-x-faturado'
+      path: '/pipe-x-faturado'
+      fullPath: '/pipe-x-faturado'
+      preLoaderRoute: typeof AuthenticatedPipeXFaturadoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/qualidade': {
+      id: '/_authenticated/qualidade'
+      path: '/qualidade'
+      fullPath: '/qualidade'
+      preLoaderRoute: typeof AuthenticatedQualidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recebiveis': {
+      id: '/_authenticated/recebiveis'
+      path: '/recebiveis'
+      fullPath: '/recebiveis'
+      preLoaderRoute: typeof AuthenticatedRecebiveisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sobre': {
+      id: '/_authenticated/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof AuthenticatedSobreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/usuarios': {
+      id: '/_authenticated/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedControladoriaRoute: typeof AuthenticatedControladoriaRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDesignSystemRoute: typeof AuthenticatedDesignSystemRoute
+  AuthenticatedDimensoesRoute: typeof AuthenticatedDimensoesRoute
+  AuthenticatedFaturamentoRoute: typeof AuthenticatedFaturamentoRoute
+  AuthenticatedFluxoDeCaixaRoute: typeof AuthenticatedFluxoDeCaixaRoute
+  AuthenticatedImportacaoRoute: typeof AuthenticatedImportacaoRoute
+  AuthenticatedJornadaRoute: typeof AuthenticatedJornadaRoute
+  AuthenticatedNegociosRoute: typeof AuthenticatedNegociosRoute
+  AuthenticatedPipeXFaturadoRoute: typeof AuthenticatedPipeXFaturadoRoute
+  AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
+  AuthenticatedRecebiveisRoute: typeof AuthenticatedRecebiveisRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedSobreRoute: typeof AuthenticatedSobreRoute
+  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedControladoriaRoute: AuthenticatedControladoriaRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDesignSystemRoute: AuthenticatedDesignSystemRoute,
+  AuthenticatedDimensoesRoute: AuthenticatedDimensoesRoute,
+  AuthenticatedFaturamentoRoute: AuthenticatedFaturamentoRoute,
+  AuthenticatedFluxoDeCaixaRoute: AuthenticatedFluxoDeCaixaRoute,
+  AuthenticatedImportacaoRoute: AuthenticatedImportacaoRoute,
+  AuthenticatedJornadaRoute: AuthenticatedJornadaRoute,
+  AuthenticatedNegociosRoute: AuthenticatedNegociosRoute,
+  AuthenticatedPipeXFaturadoRoute: AuthenticatedPipeXFaturadoRoute,
+  AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
+  AuthenticatedRecebiveisRoute: AuthenticatedRecebiveisRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedSobreRoute: AuthenticatedSobreRoute,
+  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,1 @@
+CREATE TABLE public.probe_negocios (id int PRIMARY KEY);
