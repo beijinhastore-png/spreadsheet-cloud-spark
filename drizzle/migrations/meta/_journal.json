@@ -43,6 +43,13 @@
       "when": 1791316605212,
       "tag": "0005_apply_existing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791828924996,
+      "tag": "0006_probe_negocios",
+      "breakpoints": true
     }
   ]
 }
