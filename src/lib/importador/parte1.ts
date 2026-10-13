@@ -59,7 +59,7 @@ export type Parte1 = Omit<Leitura, "aba" | "hash" | "agregados" | "parte2"> & {
 
 /** Lê a aba Parte1 (detalhe de negócios e NFs). Função pura. */
 export function lerParte1(data: Cel[][]): Parte1 {
-  const { cel, v, txt, acharNaLinha, exigir, nRows } = grade(data);
+  const { cel, v, txt, nRows } = grade(data);
   const erros: Problema[] = [];
   const avisos: Leitura["avisos"] = [];
   const aviso = (titulo: string, itens: string[]) => {
