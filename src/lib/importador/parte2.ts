@@ -65,22 +65,6 @@ export interface Parte2 {
   };
 }
 
-const TITULOS: [Bloco, (t: string) => boolean][] = [
-  ["pipe_autorizado", (t) => t === "RESUMO PIPE - EMISSAO AUTORIZADA"],
-  ["pipe", (t) => t === "RESUMO PIPE"],
-  ["fat_emissao", (t) => t.startsWith("RESUMO FATURADO - POR EMISSAO")],
-  ["fat_competencia", (t) => t === "RESUMO FATURADO - POR COMPETENCIA"],
-  ["dif_pipe_fat", (t) => t.startsWith("DIFERENCAS - ENTRE RESUMO PIPE")],
-  ["recebimento", (t) => t === "RESUMO FATURADO - POR RECEBIMENTO"],
-  ["vencimento", (t) => t === "RESUMO FATURADO - POR VENCIMENTO"],
-  ["dif_venc_receb", (t) => t.startsWith("DIFERENCAS - ENTRE FATURADO POR VENCIMENTO")],
-  ["custo_pagamento", (t) => t === "CUSTOS POR PAGAMENTO"],
-  ["dif_custo_receb", (t) => t.startsWith("DIFERENCAS - ENTRE RESUMO FATURADO - CUSTOS")],
-  ["custo_emissao", (t) => t === "CUSTOS POR EMISSAO"],
-  ["impostos", (t) => t === "IMPOSTOS"],
-  ["creditos", (t) => t === "CREDITOS"],
-];
-
 type Coluna = {
   c: number;
   bloco: Bloco;
@@ -88,7 +72,7 @@ type Coluna = {
   mes: string | null;
 };
 
-const TOL = 0.05;
+const TOL = TOLERANCIA;
 const r2 = (x: number) => Math.round(x * 100) / 100;
 const normProduto = (p: string) => p.trim().replace(/^adserver/i, "Adserver");
 /** Nome usado para linhas de seção sem cliente na coluna C (somam no "Totais:"). */
