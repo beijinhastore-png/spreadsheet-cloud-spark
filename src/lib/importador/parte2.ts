@@ -257,6 +257,11 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
       const x = v(i, k);
       if (typeof x === "string" && x.trim()) return x.trim();
     }
+    // "Total Razão:" fica à direita do Total do bloco de impostos (conferência)
+    for (let k = c + 1; k <= c + 2; k++) {
+      const x = v(i, k);
+      if (typeof x === "string" && x.trim()) return x.trim();
+    }
     return t(i, cProd) || "";
   };
   const totalBU = new Map<string, number>(); // bloco → soma das linhas "Total <BU>:" (col. Total)
