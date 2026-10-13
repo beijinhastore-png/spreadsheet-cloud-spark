@@ -6,21 +6,8 @@ import { produtoDe } from "../produto";
 import { grade, norm, num, serialISO } from "./parte1";
 import type { Cel } from "./tipos";
 
-export type Bloco =
-  | "pipe"
-  | "pipe_autorizado"
-  | "fat_emissao"
-  | "fat_competencia"
-  | "dif_pipe_fat"
-  | "a_liberar"
-  | "recebimento"
-  | "vencimento"
-  | "dif_venc_receb"
-  | "custo_pagamento"
-  | "dif_custo_receb"
-  | "custo_emissao"
-  | "impostos"
-  | "creditos";
+import { blocoP2DoTitulo, P2_BLOCOS, P2_CABECALHOS, compacto, parecidos, TOLERANCIA, type Bloco } from "./mapa-planilha";
+export type { Bloco } from "./mapa-planilha";
 
 export interface FatoRow {
   bloco: Bloco;
