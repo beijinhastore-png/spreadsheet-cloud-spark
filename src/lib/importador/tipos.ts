@@ -35,6 +35,7 @@ export interface NotaRow {
   data_emissao: string | null;
   data_vencimento: string | null;
   data_pagamento: string | null;
+  cod_verificacao: string | null; // da lista mestra
 }
 export interface AgregadoRow {
   tipo: string;
@@ -59,6 +60,12 @@ export interface Leitura {
   agregados: AgregadoRow[];
   erros: Problema[]; // linhas não importadas
   avisos: { titulo: string; itens: string[] }[]; // informativos
-  totalKD: number;
+  totalKD: number; // soma das matrizes por competência
+  resumoP1: {
+    porBloco: Record<string, number>;
+    porBU: Record<string, number>;
+    cruzadas: number;
+    semCruzamento: number;
+  };
   parte2: import("./parte2").Parte2;
 }

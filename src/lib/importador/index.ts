@@ -3,26 +3,26 @@ import * as XLSX from "xlsx";
 import { lerParte1, norm } from "./parte1";
 import { lerParte2 } from "./parte2";
 import type { Cel, Leitura } from "./tipos";
+import { ABAS, compacto } from "./mapa-planilha";
+export * from "./mapa-planilha";
 
 export * from "./tipos";
 export { lerParte1, lerAgregadosLegado } from "./parte1";
 export { lerParte2 } from "./parte2";
-export type * from "./parte2";
-
-const TITULOS_PARTE1 = ["PIPE: Negócio - Título", "FATURADO POR COMPETENCIA - POR NF"];
+export type { FatoRow, CardLiberarRow, ControleRow, ClienteDimRow, ProblemaP2, Parte2 } from "./parte2";
 
 const dados = (ws: XLSX.WorkSheet) => (ws["!data"] ?? []) as Cel[][];
-const temTitulos = (d: Cel[][]) =>
-  TITULOS_PARTE1.every((t) => (d[0] ?? []).some((x) => norm(x?.v) === norm(t)));
 
-/** Seleciona a aba Parte1 pelo nome; fallback: primeira aba com os títulos esperados. */
-export function selecionarParte1(wb: XLSX.WorkBook): { nome: string; data: Cel[][] } {
-  const nome =
-    wb.SheetNames.find((n) => norm(n) === "PARTE1") ??
-    wb.SheetNames.find((n) => temTitulos(dados(wb.Sheets[n]!)));
-  if (!nome) throw new Error("Aba Parte1 não encontrada");
+/** Seleciona a aba pelo nome normalizado (sem espaços/acentos/maiúsculas); erro claro se faltar. */
+function selecionarAba(wb: XLSX.WorkBook, alvo: string, rotulo: string) {
+  const nome = wb.SheetNames.find((n) => compacto(n) === alvo);
+  if (!nome)
+    throw new Error(
+      `Aba ${rotulo} não encontrada (abas no arquivo: ${wb.SheetNames.map((n) => `"${n}"`).join(", ")})`,
+    );
   return { nome, data: dados(wb.Sheets[nome]!) };
 }
+export const selecionarParte1 = (wb: XLSX.WorkBook) => selecionarAba(wb, ABAS.parte1, "Parte 1");
 
 /** SHA-256 (hex) do arquivo, para registrar em `importacoes`. */
 export async function hashArquivo(buf: ArrayBuffer): Promise<string> {
@@ -32,16 +32,7 @@ export async function hashArquivo(buf: ArrayBuffer): Promise<string> {
 
 export type Etapa = "parte1" | "parte2" | "validando" | "pronto";
 
-/** Seleciona a aba Parte2 pelo nome; fallback: aba com "Resumo Pipe" na linha 2. */
-export function selecionarParte2(wb: XLSX.WorkBook): { nome: string; data: Cel[][] } {
-  const nome =
-    wb.SheetNames.find((n) => norm(n) === "PARTE2") ??
-    wb.SheetNames.find((n) =>
-      (dados(wb.Sheets[n]!)[1] ?? []).some((x) => norm(x?.v) === norm("Resumo Pipe")),
-    );
-  if (!nome) throw new Error("Aba Parte2 não encontrada");
-  return { nome, data: dados(wb.Sheets[nome]!) };
-}
+export const selecionarParte2 = (wb: XLSX.WorkBook) => selecionarAba(wb, ABAS.parte2, "Parte 2");
 
 /** Lê a planilha (síncrono, sem hash). */
 export function lerPlanilhaSync(

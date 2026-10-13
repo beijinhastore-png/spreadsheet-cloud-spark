@@ -1,9 +1,10 @@
 import { fimAnoAnteriorISO, obterAnoBase } from "@/lib/periodo";
-// Importador v2 — Parte 1: negócios e NFs (Fase 5).
+// Importador v3 — Parte 1: negócios e NFs. Layout em mapa-planilha.ts.
 import { regimeDoCodigo, REGIME_NAO_IDENTIFICADO } from "../codigosNF";
 import { ALIAS_CLIENTES, CLIENTES_EXCLUIDOS, chaveCliente } from "../aliasClientes";
 import { statusDerivado } from "../calculos";
 import * as XLSX from "xlsx";
+import { P1_BLOCOS_NF, P1_NEGOCIOS, parecidos, type BlocoNF, type IdBlocoNF } from "./mapa-planilha";
 import type {
   AgregadoRow,
   Cel,
@@ -58,7 +59,7 @@ export type Parte1 = Omit<Leitura, "aba" | "hash" | "agregados" | "parte2"> & {
 
 /** Lê a aba Parte1 (detalhe de negócios e NFs). Função pura. */
 export function lerParte1(data: Cel[][]): Parte1 {
-  const { cel, v, txt, acharNaLinha, exigir, nRows } = grade(data);
+  const { cel, v, txt, nRows } = grade(data);
   const erros: Problema[] = [];
   const avisos: Leitura["avisos"] = [];
   const aviso = (titulo: string, itens: string[]) => {
@@ -66,70 +67,96 @@ export function lerParte1(data: Cel[][]): Parte1 {
   };
 
   // Cabeçalhos de um bloco de NFs (linha 2), do início até "Total:"
-  function blocoNF(titulo: string) {
-    const c0 = exigir(0, titulo);
+  function blocoNF(def: BlocoNF) {
+    const c0 = (data[0] ?? []).findIndex((x) => norm(x?.v) === norm(def.titulo));
+    if (c0 < 0) return null;
     const cols: Record<string, number> = {};
     const meses: { c: number; iso: string }[] = [];
     for (let c = c0; c < c0 + 40; c++) {
       const h = v(1, c);
       if (typeof h === "number") meses.push({ c, iso: serialISO(h) });
       else if (h != null && h !== "") {
-        cols[norm(h).replace(/:$/, "")] = c;
-        if (norm(h).startsWith("TOTAL")) break;
+        const k = norm(h).replace(/:$/, "");
+        if (cols[k] == null) cols[k] = c;
+        if (k.startsWith("TOTAL")) break;
       }
     }
-    const col = (n: string) => {
-      const c = cols[norm(n)];
-      if (c == null) throw new Error(`Coluna "${n}" não encontrada no bloco "${titulo}".`);
-      return c;
-    };
+    const faltaCab = def.cabecalhos.filter((h) => cols[norm(h).replace(/:$/, "")] == null);
+    if (faltaCab.length)
+      throw new Error(
+        `Bloco "${def.titulo}": cabeçalho(s) não encontrado(s) na linha 2: ${faltaCab.join(", ")}`,
+      );
+    const col = (n: string) => cols[norm(n).replace(/:$/, "")]!;
     const nfs = new Map<string, number>();
     const cNF = col("Nota Fiscal");
     for (let r = 2; r < nRows; r++) {
       const x = txt(r, cNF);
-      if (x && !/total/i.test(x)) {
-        if (!nfs.has(x)) nfs.set(x, r);
-      }
+      if (x && !/total/i.test(x) && !nfs.has(x)) nfs.set(x, r);
     }
-    return { c0, cols, col, meses, nfs };
+    return { def, c0, cols, col, meses, nfs };
   }
+  type LidoNF = NonNullable<ReturnType<typeof blocoNF>>;
 
-  // ===== Notas fiscais =====
-  const JC = blocoNF("FATURADO POR CLIENTE - POR COMPETÊNCIA - POR NF");
-  const KD = blocoNF("FATURADO POR COMPETENCIA - POR NF");
-  const LD = blocoNF("ADVERTISING - FATURADO POR CLIENTE - POR COMPETÊNCIA - POR NF");
-  const MD = blocoNF("ADVERTISING - FATURADO POR CLIENTE - POR EMISSÃO - POR NF");
-  const NE = blocoNF("Analytics - FATURADO POR CLIENTE - POR COMPETÊNCIA - POR NF");
-  const OE = blocoNF("Analytics - FATURADO POR CLIENTE - POR EMISSÃO - POR NF");
-  const PE = blocoNF("FATURADO POR EMISSÃO - POR NF");
+  // ===== Blocos de NF (mapa-planilha.ts) =====
+  const lidos = new Map<IdBlocoNF, LidoNF>();
+  const faltando: BlocoNF[] = [];
+  for (const d of P1_BLOCOS_NF) {
+    const b = blocoNF(d);
+    if (b) lidos.set(d.id, b);
+    else if (d.obrigatorio) faltando.push(d);
+  }
+  if (faltando.length) {
+    const achados = (data[0] ?? []).map((x) => String(x?.v ?? "").trim()).filter(Boolean);
+    throw new Error(
+      `Parte1: bloco(s) obrigatório(s) não encontrado(s) na linha 1 — ${faltando
+        .map(
+          (d) =>
+            `esperado "${d.titulo}" (mais parecidos: ${
+              parecidos(d.titulo, achados)
+                .map((p) => `"${p}"`)
+                .join(", ") || "nenhum"
+            })`,
+        )
+        .join("; ")}`,
+    );
+  }
+  const MS = lidos.get("mestra")!;
+  const AC = lidos.get("adv_comp")!,
+    AE = lidos.get("adv_emis")!,
+    NC = lidos.get("ana_comp")!,
+    NE = lidos.get("ana_emis")!;
 
-  // conferência entre blocos
-  const fonte = new Set(JC.nfs.keys());
+  // ===== Cruzamento: lista mestra × blocos por BU =====
+  const mestraSet = new Set(MS.nfs.keys());
+  const advSet = new Set(AC.nfs.keys()),
+    anaSet = new Set(NC.nfs.keys());
   const conf: string[] = [];
-  const advSet = new Set([...LD.nfs.keys()]),
-    anaSet = new Set([...NE.nfs.keys()]);
-  for (const [nome, b, esperado] of [
-    ["KD (competência)", KD, fonte],
-    ["PE (emissão)", PE, fonte],
-    ["LD (Advertising competência)", LD, null],
-    ["MD (Advertising emissão)", MD, advSet],
-    ["NE (Analytics competência)", NE, null],
-    ["OE (Analytics emissão)", OE, anaSet],
+  const uniao = (a: LidoNF, b: LidoNF) => new Set([...a.nfs.keys(), ...b.nfs.keys()]);
+  for (const [nome, set] of [
+    ["Competência (Advertising + Analytics)", uniao(AC, NC)],
+    ["Emissão (Advertising + Analytics)", uniao(AE, NE)],
   ] as const) {
-    const s = new Set(b.nfs.keys());
-    const ref = esperado ?? fonte;
-    const soBloco = [...s].filter((x) => !fonte.has(x));
-    const faltam = esperado ? [...ref].filter((x) => !s.has(x)) : [];
-    if (soBloco.length || faltam.length)
+    const faltam = [...mestraSet].filter((x) => !set.has(x));
+    const sobram = [...set].filter((x) => !mestraSet.has(x));
+    if (faltam.length)
+      conf.push(`${nome}: ${faltam.length} NF(s) da lista mestra ausentes — ${faltam.join(", ")}`);
+    if (sobram.length)
+      conf.push(`${nome}: ${sobram.length} NF(s) fora da lista mestra — ${sobram.join(", ")}`);
+  }
+  for (const [nome, a, b] of [
+    ["Advertising", AC, AE],
+    ["Analytics", NC, NE],
+  ] as const) {
+    const so1 = [...a.nfs.keys()].filter((x) => !b.nfs.has(x));
+    const so2 = [...b.nfs.keys()].filter((x) => !a.nfs.has(x));
+    if (so1.length || so2.length)
       conf.push(
-        `${nome}: ${faltam.length} ausentes, ${soBloco.length} só neste bloco${[...faltam, ...soBloco].length ? ` — ex.: ${[...faltam, ...soBloco].slice(0, 5).join(", ")}` : ""}`,
+        `${nome}: ${so1.length} só no bloco por competência, ${so2.length} só no por emissão — ${[...so1, ...so2].join(", ")}`,
       );
   }
-  const semBU = [...fonte].filter((x) => !advSet.has(x) && !anaSet.has(x));
-  const ambos = [...fonte].filter((x) => advSet.has(x) && anaSet.has(x));
-  if (semBU.length) conf.push(`Sem BU (fora de LD e NE): ${semBU.join(", ")}`);
+  const ambos = [...advSet].filter((x) => anaSet.has(x));
   if (ambos.length) conf.push(`Em Advertising e Analytics ao mesmo tempo: ${ambos.join(", ")}`);
-  aviso("Conferência entre blocos", conf);
+  aviso("Cruzamento lista mestra × blocos por BU", conf);
 
   // nomes canônicos de clientes
   const aliasN = new Map(Object.entries(ALIAS_CLIENTES).map(([a, c]) => [chaveCliente(a), c]));
@@ -146,42 +173,42 @@ export function lerParte1(data: Cel[][]): Parte1 {
     const m = grafias.get(chaveCliente(alvo));
     return m ? [...m.entries()].sort((a, b) => b[1] - a[1])[0]![0] : alvo.trim();
   };
-  const cCli = JC.col("Cliente"),
-    cRaz = JC.col("Razão Social"),
-    cCard = JC.col("Nome do Card no Pipe"),
-    cPipe = JC.col("Pipe"),
-    cNF = JC.col("Nota Fiscal"),
-    cLink = JC.col("NF"),
-    cCod = JC.col("Código"),
-    cEmi = JC.col("Emissão"),
-    cVen = JC.col("Vencimento"),
-    cPag = JC.col("Data Pagamento"),
-    cSt = JC.col("Status");
-  const pipeC0 = 0;
-  for (const r of JC.nfs.values())
+  const cCli = MS.col("Cliente"),
+    cRaz = MS.col("Razão Social"),
+    cCard = MS.col("Nome do Card no Pipe"),
+    cPipe = MS.col("Pipe"),
+    cNF = MS.col("Nota Fiscal"),
+    cVer = MS.col("Cód Verificação"),
+    cLink = MS.col("NF"),
+    cEmi = MS.col("Emissão"),
+    cComp = MS.col("Competência"),
+    cVen = MS.col("Vencimento"),
+    cSt = MS.col("Status");
+  for (const r of MS.nfs.values())
     if (chaveCliente(txt(r, cCli)) !== "não localizado") contar(txt(r, cCli));
+  const H = P1_NEGOCIOS.cabecalhos;
   const pipeHdr = (n: string) => {
     const c = (data[0] ?? [])
-      .slice(pipeC0, 12)
+      .slice(0, P1_NEGOCIOS.ultimaColuna)
       .findIndex((x) => norm(x?.v).replace(/:$/, "") === norm(n).replace(/:$/, ""));
-    if (c < 0) throw new Error(`Coluna "${n}" do bloco Pipe não encontrada.`);
+    if (c < 0) throw new Error(`Coluna "${n}" do bloco de negócios não encontrada na linha 1.`);
     return c;
   };
-  const pT = pipeHdr("PIPE: Negócio - Título"),
-    pG = pipeHdr("Negócio - Ganho em"),
-    pC = pipeHdr("Contrato"),
-    pPl = pipeHdr("Plataforma"),
-    pV = pipeHdr("Negócio - Valor"),
-    pTot = pipeHdr("Total p/ Card"),
-    pCli = pipeHdr("Cliente:"),
-    pId = pipeHdr("Pipe:"),
-    pAut = pipeHdr("Autorizada emissão"),
-    pNF = pipeHdr("NF");
+  const pT = pipeHdr(H.titulo),
+    pG = pipeHdr(H.ganhoEm),
+    pC = pipeHdr(H.contrato),
+    pPl = pipeHdr(H.plataforma),
+    pV = pipeHdr(H.valor),
+    pTot = pipeHdr(H.totalCard),
+    pCli = pipeHdr(H.cliente),
+    pId = pipeHdr(H.idPipe),
+    pAut = pipeHdr(H.autorizada),
+    pNF = pipeHdr(H.nf);
   for (let r = 1; r < nRows; r++) if (txt(r, pT) && txt(r, pCli)) contar(txt(r, pCli));
 
   // razão social → clientes (para inferir "Não localizado")
   const razaoCli = new Map<string, Set<string>>();
-  for (const r of JC.nfs.values()) {
+  for (const r of MS.nfs.values()) {
     const c = txt(r, cCli);
     if (chaveCliente(c) === "não localizado") continue;
     const k = norm(txt(r, cRaz));
@@ -205,15 +232,6 @@ export function lerParte1(data: Cel[][]): Parte1 {
     return null;
   };
 
-  const peComp = PE.col("Competência"),
-    peNF = PE.col("Nota Fiscal");
-  const pePorNF = new Map<string, string>();
-  for (let r = 2; r < nRows; r++) {
-    const n = txt(r, peNF);
-    const c = v(r, peComp);
-    if (n && typeof c === "number") pePorNF.set(n, serialISO(c).slice(0, 7));
-  }
-
   const notas: NotaRow[] = [];
   const vistos = new Set<string>();
   const inferidos: string[] = [],
@@ -222,9 +240,11 @@ export function lerParte1(data: Cel[][]): Parte1 {
     codDesc: string[] = [],
     divStatus: string[] = [],
     divSufixo: string[] = [],
-    divPE: string[] = [];
+    divComp: string[] = [],
+    semCruzamento: string[] = [];
   let semIdPipe = 0,
     totalKD = 0;
+  const anoBase = obterAnoBase();
   for (let r = 2; r < nRows; r++) {
     const numero = txt(r, cNF);
     if (!numero || /total/i.test(numero)) continue;
@@ -256,53 +276,73 @@ export function lerParte1(data: Cel[][]): Parte1 {
         semCliente.push(`NF ${numero} — ${txt(r, cRaz)}`);
       }
     } else cliente = canon(cliente);
-    // valores: matriz do bloco KD
-    const rk = KD.nfs.get(numero);
-    const ms =
-      rk == null ? [] : KD.meses.map((m) => ({ ...m, val: num(v(rk, m.c)) })).filter((m) => m.val);
+
+    // BU = bloco por competência em que a NF aparece; valores pela matriz desse bloco
+    const bu = advSet.has(numero) ? "Advertising" : anaSet.has(numero) ? "Analytics" : "";
+    const B = bu === "Advertising" ? AC : bu === "Analytics" ? NC : null;
+    const rb = B?.nfs.get(numero);
+    let ms =
+      B && rb != null
+        ? B.meses.map((m) => ({ ...m, val: num(v(rb, m.c)) })).filter((m) => m.val)
+        : [];
+    if (!ms.length) {
+      // sem cruzamento: usa a matriz por emissão da lista mestra (nunca descarta valor)
+      ms = MS.meses.map((m) => ({ ...m, val: num(v(r, m.c)) })).filter((m) => m.val);
+      semCruzamento.push(
+        `NF ${numero}${B ? ` (${bu}: matriz vazia)` : " (fora dos blocos por BU)"} — valor pela lista mestra`,
+      );
+    }
     if (!ms.length) {
       erros.push({
         modulo: "NF",
         linha: r + 1,
         coluna: letra(cNF),
-        msg: `NF ${numero} sem valor na matriz do bloco KD`,
+        msg: `NF ${numero} sem valor na matriz`,
       });
       continue;
     }
     if (ms.length > 1)
       erros.push({
         modulo: "NF",
-        linha: (rk ?? r) + 1,
+        linha: (rb ?? r) + 1,
         coluna: letra(ms[1]!.c),
         msg: `NF ${numero} com valor em mais de um mês (somado; competência do 1º)`,
       });
     const valor = ms.reduce((a, m) => a + (m.val ?? 0), 0);
     totalKD += valor;
     const col = ms[0]!;
-    const anoCol =
-      col.iso === fimAnoAnteriorISO() ? obterAnoBase() - 1 : Number(col.iso.slice(0, 4));
-    const mesCol = Number(col.iso.slice(5, 7));
+    const anterior = col.iso <= fimAnoAnteriorISO();
+    const vComp = v(r, cComp);
+    const compMestra = typeof vComp === "number" ? serialISO(vComp).slice(0, 7) : null;
     const suf = sufixoMes(card);
+    let competencia: string;
+    if (B && rb != null) {
+      competencia = anterior
+        ? compMestra && compMestra < `${anoBase}-01`
+          ? compMestra
+          : `${anoBase - 1}-${pad(suf ?? 12)}`
+        : col.iso.slice(0, 7);
+    } else competencia = compMestra ?? col.iso.slice(0, 7);
+    if (compMestra && compMestra !== competencia)
+      divComp.push(`NF ${numero}: matriz ${competencia} × "Competência:" ${compMestra}`);
     if (suf == null)
-      divSufixo.push(`NF ${numero}: título sem sufixo de mês ("${card}") — usado o mês da coluna`);
-    else if (col.iso !== fimAnoAnteriorISO() && suf !== mesCol)
+      divSufixo.push(`NF ${numero}: título sem sufixo de mês ("${card}")`);
+    else if (Number(competencia.slice(5, 7)) !== suf)
       divSufixo.push(
-        `NF ${numero}: sufixo ${MESES[suf - 1]} × coluna ${MESES[mesCol - 1]}/${anoCol} ("${card}")`,
+        `NF ${numero}: matriz ${competencia} × sufixo ${MESES[suf - 1]} ("${card}")`,
       );
-    const competencia = `${anoCol}-${pad(suf ?? mesCol)}`;
-    const pe = pePorNF.get(numero);
-    if (pe && pe !== competencia) divPE.push(`NF ${numero}: sistema ${competencia} × PE ${pe}`);
     const cp = cel(r, cPipe);
     const linkPipe = cp?.l?.Target ?? (txt(r, cPipe) || null);
     const idm = linkPipe ? /deal\/(\d+)/.exec(linkPipe) : null;
     if (!idm) semIdPipe++;
-    const codigo = txt(r, cCod);
+    // Código NFS-e e data de pagamento: blocos por BU (cruzando pelo número da NF)
+    const codigo = B && rb != null ? txt(rb, B.col("Código")) : "";
     const regime = regimeDoCodigo(codigo);
     if (regime === REGIME_NAO_IDENTIFICADO)
       codDesc.push(`NF ${numero}: código "${codigo}" — ${REGIME_NAO_IDENTIFICADO}`);
     const emissao = dataISO(r, cEmi, true),
       venc = dataISO(r, cVen, true),
-      pag = dataISO(r, cPag, false);
+      pag = B && rb != null ? dataISO(rb, B.col("Data Pagamento"), false) : null;
     const st = statusDerivado({ vencimento: venc ?? "", dataPagamento: pag ?? undefined });
     if (norm(txt(r, cSt)) !== norm(st))
       divStatus.push(`NF ${numero}: planilha "${txt(r, cSt)}" × calculado "${st}"`);
@@ -317,24 +357,39 @@ export function lerParte1(data: Cel[][]): Parte1 {
       link_nf: cel(r, cLink)?.l?.Target ?? null,
       codigo,
       regime,
-      bu: advSet.has(numero) ? "Advertising" : anaSet.has(numero) ? "Analytics" : "",
+      bu,
       valor: Math.round(valor * 100) / 100,
       data_competencia: competencia,
       data_emissao: emissao,
       data_vencimento: venc,
       data_pagamento: pag,
+      cod_verificacao: txt(r, cVer) || null,
     });
   }
+  aviso("NFs da lista mestra sem cruzamento nos blocos por BU", semCruzamento);
   aviso("Clientes inferidos pela razão social", inferidos);
   aviso('NFs sem cliente ("Sem cliente")', semCliente);
   aviso("Excluídos da importação", excluidos);
   aviso("Códigos desconhecidos", codDesc);
-  aviso("Inconsistência: sufixo do card × coluna da matriz", divSufixo);
-  aviso("Competência × coluna Competência do bloco PE (informativo)", divPE);
+  aviso("Inconsistência: sufixo do card × matriz por competência", divSufixo);
+  aviso('Competência: matriz × coluna "Competência:" da lista mestra', divComp);
   aviso("Status da planilha × calculado (informativo)", divStatus);
   if (semIdPipe) aviso('NFs sem ID do Pipe (link "Não Localizado")', [`${semIdPipe} nota(s)`]);
   const aliasUsados = Object.entries(ALIAS_CLIENTES).map(([a, c]) => `${a} → ${c}`);
   aviso("Clientes unidos por alias", aliasUsados);
+  const resumoP1 = {
+    porBloco: Object.fromEntries([...lidos].map(([id, b]) => [id, b.nfs.size])) as Record<
+      string,
+      number
+    >,
+    porBU: {
+      Advertising: notas.filter((n) => n.bu === "Advertising").length,
+      Analytics: notas.filter((n) => n.bu === "Analytics").length,
+      "Sem BU": notas.filter((n) => !n.bu).length,
+    },
+    cruzadas: notas.length - semCruzamento.length,
+    semCruzamento: semCruzamento.length,
+  };
 
   // ===== Negócios (Pipe) =====
   const negocios: NegocioRow[] = [];
@@ -427,6 +482,7 @@ export function lerParte1(data: Cel[][]): Parte1 {
     erros,
     avisos,
     totalKD: Math.round(totalKD * 100) / 100,
+    resumoP1,
     canon,
   };
 }
