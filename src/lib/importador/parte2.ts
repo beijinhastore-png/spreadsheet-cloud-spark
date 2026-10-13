@@ -136,18 +136,31 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
 
   // ===== Blocos (linha 2) e colunas (linha 3) =====
   const titulos: { c: number; bloco: Bloco; titulo: string }[] = [];
+  const achados: string[] = [];
   (data[1] ?? []).forEach((x, c) => {
-    const tt = norm(x?.v);
-    if (!tt) return;
-    const m = TITULOS.find(([, f]) => f(tt));
-    if (m) titulos.push({ c, bloco: m[0], titulo: String(x?.v) });
+    if (!norm(x?.v)) return;
+    achados.push(String(x?.v).trim());
+    const m = blocoP2DoTitulo(x?.v);
+    if (m) titulos.push({ c, bloco: m.bloco, titulo: String(x?.v) });
   });
-  const faltam = TITULOS.map(([b]) => b).filter((b) => !titulos.some((x) => x.bloco === b));
+  const faltam = P2_BLOCOS.filter(
+    (b) => b.obrigatorio && !titulos.some((x) => x.bloco === b.bloco),
+  );
   if (faltam.length)
-    throw new Error(`Parte2: bloco(s) não encontrado(s) na linha 2: ${faltam.join(", ")}`);
+    throw new Error(
+      `Parte2: bloco(s) obrigatório(s) não encontrado(s) na linha 2 — ${faltam
+        .map(
+          (b) =>
+            `esperado "${b.inicio}…" (mais parecidos: ${parecidos(b.inicio, achados)
+              .map((p) => `"${p}"`)
+              .join(", ") || "nenhum"})`,
+        )
+        .join("; ")}`,
+    );
   const nCols = Math.max(...data.slice(0, 3).map((r) => r?.length ?? 0));
   const colunas: Coluna[] = [];
   const ajustes: string[] = [];
+  const reAnterior = new RegExp(`^<?31/12/${obterAnoBase() - 1}$`);
   for (let i = 0; i < titulos.length; i++) {
     const { c: c0 } = titulos[i]!;
     const c1 = i + 1 < titulos.length ? titulos[i + 1]!.c : nCols;
@@ -159,11 +172,16 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
         if (iso <= fimAnoAnteriorISO()) cols.push({ c, tipo: "anterior", mes: MES_ANTERIOR() });
         else cols.push({ c, tipo: "mes", mes: `${iso.slice(0, 7)}-01` });
       } else {
-        const hn = norm(h);
-        if (new RegExp(`^<?\\s*31/12/${obterAnoBase() - 1}$`).test(hn))
-          cols.push({ c, tipo: "anterior", mes: MES_ANTERIOR() });
-        else if (hn.startsWith("TOTAL")) cols.push({ c, tipo: "total", mes: null });
-        else if (hn === "A LIBERAR") cols.push({ c, tipo: "a_liberar", mes: null });
+        const hc = compacto(h);
+        if (reAnterior.test(hc)) cols.push({ c, tipo: "anterior", mes: MES_ANTERIOR() });
+        else if (hc.startsWith(compacto(P2_CABECALHOS.total))) {
+          cols.push({ c, tipo: "total", mes: null });
+          // "A liberar" vem logo depois do Total do bloco de diferenças Pipe × Faturado
+          if (compacto(v(2, c + 1)) === compacto(P2_CABECALHOS.aLiberar))
+            cols.push({ c: c + 1, tipo: "a_liberar", mes: null });
+          break; // cada bloco termina na coluna "Total:"
+        } else if (hc === compacto(P2_CABECALHOS.aLiberar))
+          cols.push({ c, tipo: "a_liberar", mes: null });
       }
     }
     let bloco = titulos[i]!.bloco;
