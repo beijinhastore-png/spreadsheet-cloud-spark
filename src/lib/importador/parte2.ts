@@ -142,7 +142,6 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
     achados.push(String(x?.v).trim());
     const m = blocoP2DoTitulo(x?.v);
     if (m) titulos.push({ c, bloco: m.bloco, titulo: String(x?.v) });
-  if (process.env.DBG) console.log("TIT", titulos.length);
   });
   const faltam = P2_BLOCOS.filter(
     (b) => b.obrigatorio && !titulos.some((x) => x.bloco === b.bloco),
@@ -158,7 +157,7 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
         )
         .join("; ")}`,
     );
-  const nCols = Math.max(...data.slice(0, 3).map((r) => r?.length ?? 0));
+  const nCols = Math.max(0, ...Array.from(data.slice(0, 3), (r) => r?.length ?? 0));
   const colunas: Coluna[] = [];
   const ajustes: string[] = [];
   const reAnterior = new RegExp(`^<?31/12/${obterAnoBase() - 1}$`);
@@ -202,7 +201,6 @@ export function lerParte2(data: Cel[][], canonExt?: (n: string) => string): Part
       );
   }
   aviso("Ajustes de layout da Parte2", ajustes);
-  if (process.env.DBG) console.log("COLS", JSON.stringify(Object.fromEntries([...new Set(colunas.map(x=>x.bloco))].map(b=>[b,colunas.filter(x=>x.bloco===b).length]))), titulos.map(t=>t.bloco+":"+t.c).join(" "));
   const colsFato = colunas.filter((x) => x.tipo !== "total");
 
   // ===== Resumo BU × Produto (linhas 4–18) =====
